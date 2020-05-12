@@ -1,10 +1,11 @@
-Ring buffer in C
+FIFO / Ring buffer in C
 ===
 
 This is an implementation of a ring buffer in C, with the following attributes:
 
-- Ring buffer with user defined data type.
+- Ring buffer / FIFO with user defined data type.
 - Manages read/write and mutliple buffer instances.
+- Does not overwrite data that has not been read yet.
 - Buffer instances / slots can be claimed and returned for repeated use.
 - The buffer struct is hidden to the user.
 - Data has to be provided by the user.
@@ -28,7 +29,7 @@ Example Usage
 ## Configuration
 
 Lets assume you have an SPI driver, that requires a buffer for both input and
-output, and communication is based on excahnging bytes (= 8 bit length).
+output, and communication is based on exchanging bytes (= 8 bit length).
 
 Configure the buffer system in `ring_buffer_config.h` like so:
 ```
