@@ -1,30 +1,30 @@
-#include "ring_buffer.h"
+#include "fifo_buffer.h"
 #include "string.h"
 
 // --- PRIVATE STRUCTURE FOR A SINGLE BUFFER ---
-typedef struct ring_buffer_t {
+typedef struct fifo_internal_buffer_t {
     uint8_t is_empty;
     uint8_t is_full;
     DATA_TYPE* data_array_first;
     DATA_TYPE* data_array_last;
     DATA_TYPE* read;
     DATA_TYPE* write;
-} ring_buffer_t;
+} fifo_internal_buffer_t;
 
 // --- HOLD MULTIPLE BUFFERS, organized by pointers on a stack ---
 typedef struct buffer_system_t {
     unsigned int buffer_claim_count;
     unsigned int buffer_return_count;
     unsigned int buffer_stack_size;
-    ring_buffer_t* buffer_stack[RB_BUFFER_COUNT];
-    ring_buffer_t  buffers[RB_BUFFER_COUNT];
+    fifo_internal_buffer_t* buffer_stack[FIFO_BUFFER_COUNT];
+    fifo_internal_buffer_t  buffers[FIFO_BUFFER_COUNT];
 } buffer_system_t;
-buffer_system_t rb_system;
+buffer_system_t fifo_system;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * HELPER FUNCTIONS
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-uint8_t ouf_of_bounds(rb_buffer_t buffer, DATA_TYPE* pointer) {
+uint8_t ouf_of_bounds(fifo_buffer_t buffer, DATA_TYPE* pointer) {
     if (pointer > buffer->data_array_last ) return 1;
     if (pointer < buffer->data_array_first) return 1;
     return 0;
@@ -33,86 +33,86 @@ uint8_t ouf_of_bounds(rb_buffer_t buffer, DATA_TYPE* pointer) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * MANAGE BUFFER INSTANCES
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-uint8_t rb_init_system() {
-    rb_system.buffer_stack_size = RB_BUFFER_COUNT;
-    rb_system.buffer_claim_count = 0;
-    rb_system.buffer_return_count = 0;
-    for (int i = 0 ; i < RB_BUFFER_COUNT ; i++) {
-        rb_system.buffer_stack[i] = &rb_system.buffers[i];
+uint8_t fifo_init_system() {
+    fifo_system.buffer_stack_size = FIFO_BUFFER_COUNT;
+    fifo_system.buffer_claim_count = 0;
+    fifo_system.buffer_return_count = 0;
+    for (int i = 0 ; i < FIFO_BUFFER_COUNT ; i++) {
+        fifo_system.buffer_stack[i] = &fifo_system.buffers[i];
     }
-    return RB_OK;
+    return FIFO_OK;
 }
 
-rb_buffer_t rb_claim_buffer() {
-    uint8_t stack_not_empty = rb_system.buffer_stack_size > 0;
+fifo_buffer_t fifo_claim_buffer() {
+    uint8_t stack_not_empty = fifo_system.buffer_stack_size > 0;
     if (stack_not_empty){
-        rb_system.buffer_claim_count++;
-        return rb_system.buffer_stack[--rb_system.buffer_stack_size];
+        fifo_system.buffer_claim_count++;
+        return fifo_system.buffer_stack[--fifo_system.buffer_stack_size];
     }
     return NULL;
 }
 
-uint8_t rb_buffer_on_stack(rb_buffer_t buffer) {
-    for (int i = 0; i < rb_system.buffer_stack_size ; i++) {
-        if (&rb_system.buffers[i] == buffer)
-            return RB_DUPLICATE;
+uint8_t fifo_buffer_on_stack(fifo_buffer_t buffer) {
+    for (int i = 0; i < fifo_system.buffer_stack_size ; i++) {
+        if (&fifo_system.buffers[i] == buffer)
+            return FIFO_DUPLICATE;
     }
-    rb_system.buffer_return_count++;
-    return RB_OK;
+    fifo_system.buffer_return_count++;
+    return FIFO_OK;
 }
 
-uint8_t rb_return_buffer(rb_buffer_t buffer) {
-    rb_buffer_t buffer_slot_address = &rb_system.buffers[0];
-    if (rb_buffer_on_stack(buffer) == RB_DUPLICATE)
-        return RB_DUPLICATE;
+uint8_t fifo_return_buffer(fifo_buffer_t buffer) {
+    fifo_buffer_t buffer_slot_address = &fifo_system.buffers[0];
+    if (fifo_buffer_on_stack(buffer) == FIFO_DUPLICATE)
+        return FIFO_DUPLICATE;
 
-    for (int i = 0 ; i < RB_BUFFER_COUNT ; i++, buffer_slot_address++) {
+    for (int i = 0 ; i < FIFO_BUFFER_COUNT ; i++, buffer_slot_address++) {
         if (buffer_slot_address == buffer) {
-            rb_system.buffer_stack[rb_system.buffer_stack_size++] = buffer;
-            return RB_OK;
+            fifo_system.buffer_stack[fifo_system.buffer_stack_size++] = buffer;
+            return FIFO_OK;
         }
     }
-    return RB_NULL;
+    return FIFO_NULL;
 }
 
-uint8_t rb_init_buffer(rb_buffer_t buffer, rb_data_info_t* data) {
-    if (buffer == NULL) return RB_NULL;
-    memset(buffer, 0, sizeof(ring_buffer_t));
+uint8_t fifo_init_buffer(fifo_buffer_t buffer, fifo_data_info_t* data) {
+    if (buffer == NULL) return FIFO_NULL;
+    memset(buffer, 0, sizeof(fifo_internal_buffer_t));
     buffer->data_array_first = data->array;
     buffer->data_array_last  = data->array + (data->element_count - 1);
     buffer->read             = buffer->data_array_first;
     buffer->write            = buffer->data_array_first;
     buffer->is_empty         = 1;
-    return RB_OK;
+    return FIFO_OK;
 }
 
-rb_buffer_t rb_claim_and_init_buffer(rb_data_info_t* data) {
-    rb_buffer_t buffer;
-    buffer = rb_claim_buffer();
-    if (rb_init_buffer(buffer, data) == RB_NULL) {
+fifo_buffer_t fifo_claim_and_init_buffer(fifo_data_info_t* data) {
+    fifo_buffer_t buffer;
+    buffer = fifo_claim_buffer();
+    if (fifo_init_buffer(buffer, data) == FIFO_NULL) {
         return NULL;
     } else {
         return buffer;
     }
 }
 
-uint8_t rb_get_used_buffer_slot_count() {
-    return RB_BUFFER_COUNT - rb_system.buffer_stack_size;
+uint8_t fifo_get_used_buffer_slot_count() {
+    return FIFO_BUFFER_COUNT - fifo_system.buffer_stack_size;
 }
 
 // --- purely informational for debug / stats / tests ---
-unsigned int rb_claim_count() {
-    return rb_system.buffer_claim_count;
+unsigned int fifo_claim_count() {
+    return fifo_system.buffer_claim_count;
 }
 
 // --- purely informational for debug / stats / tests ---
-unsigned int rb_return_count() {
-    return rb_system.buffer_return_count;
+unsigned int fifo_return_count() {
+    return fifo_system.buffer_return_count;
 
 }
 
 // --- purely informational for debug / stats / tests ---
-unsigned int rb_get_buffer_size(rb_buffer_t buffer) {
+unsigned int fifo_get_buffer_size(fifo_buffer_t buffer) {
     unsigned int buffer_size = (*(buffer->data_array_last)  \
                              - *(buffer->data_array_first)) \
                              + 1;
@@ -122,8 +122,8 @@ unsigned int rb_get_buffer_size(rb_buffer_t buffer) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * MANAGE BUFFER CONTENT
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-uint8_t rb_add_element (rb_buffer_t buffer, DATA_TYPE element) {
-    if (buffer->is_full) return RB_FULL;
+uint8_t fifo_add_element (fifo_buffer_t buffer, DATA_TYPE element) {
+    if (buffer->is_full) return FIFO_FULL;
 
     *(buffer->write) = element;
     buffer->write++;
@@ -134,10 +134,10 @@ uint8_t rb_add_element (rb_buffer_t buffer, DATA_TYPE element) {
 
     if (buffer->write == buffer->read) buffer->is_full = 1;
 
-    return RB_OK;
+    return FIFO_OK;
 }
 
-DATA_TYPE* rb_read_element (rb_buffer_t buffer) {
+DATA_TYPE* fifo_read_element (fifo_buffer_t buffer) {
     if (buffer->is_empty) return NULL;
 
     DATA_TYPE* element = *(buffer->read);
@@ -152,17 +152,17 @@ DATA_TYPE* rb_read_element (rb_buffer_t buffer) {
     return element;
 }
 
-uint8_t rb_is_empty(rb_buffer_t buffer) {
+uint8_t fifo_is_empty(fifo_buffer_t buffer) {
     return buffer->is_empty;
 }
 
-uint8_t rb_is_full(rb_buffer_t buffer) {
+uint8_t fifo_is_full(fifo_buffer_t buffer) {
     return buffer->is_full;
 }
 
 #ifdef TEST
-void print_buffer(rb_buffer_t buffer) {
-    unsigned int buffer_size = rb_get_buffer_size(buffer);
+void print_buffer(fifo_buffer_t buffer) {
+    unsigned int buffer_size = fifo_get_buffer_size(buffer);
     for (int i = 0; i < buffer_size ; i++) {
         printf("%d ", buffer->data_array_first[i]);
         if (!(i+1 % 0))

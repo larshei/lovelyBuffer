@@ -31,17 +31,17 @@ Example Usage
 Lets assume you have an SPI driver, that requires a buffer for both input and
 output, and communication is based on exchanging bytes (= 8 bit length).
 
-Configure the buffer system in `ring_buffer_config.h` like so:
+Configure the buffer system in `fifo_buffer_config.h` like so:
 ```
 #define DATA_TYPE           uint8_t
-#define RB_BUFFER_COUNT     2
+#define FIFO_BUFFER_COUNT     2
 ```
 
 ## System Init
 
 At startup, the buffer system needs to be initialized, using
 ```
-if (rb_init_system() != RB_OK) {
+if (fifo_init_system() != FIFO_OK) {
     // handle error
 }
 ```
@@ -56,40 +56,40 @@ storage. Buffers will be used in the application based on their handle/pointer.
 
 ```
 DATA_TYPE    buffer_array[100];
-rb_buffer_t  buffer_handle;
+fifo_buffer_t  buffer_handle;
 ```
 
 To give the data storage information to the buffer system, create a
-`rb_data_info_t` structure:
+`fifo_data_info_t` structure:
 ```
-rb_data_info_t              buffer_config;
+fifo_data_info_t              buffer_config;
 buffer_config.array         = (DATA_TYPE*) buffer_array;
 buffer_config.element_count = BUFFER_SIZE;
 buffer_config.element_size  = sizeof(DATA_TYPE);
 ```
 and pass it to the system to retrieve and initialize a buffer:
 ```
-buffer_handle = rb_claim_and_init_buffer((rb_data_info_t*)&buffer_config);
+buffer_handle = fifo_claim_and_init_buffer((fifo_data_info_t*)&buffer_config);
 ```
 Make sure to not claim more buffers than you have configured in
-`RB_BUFFER_COUNT`, otherwise this function will return NULL instead of a buffer
+`FIFO_BUFFER_COUNT`, otherwise this function will return NULL instead of a buffer
 handle.
 
 ## Buffer Usage
 
 Using a buffer is pretty straight forward adding and reading values, using
 ```
-uint8_t    result = rb_add_element(buffer_handle, value);
-DATA_TYPE  value  = rb_read_element(buffer_handle);
+uint8_t    result = fifo_add_element(buffer_handle, value);
+DATA_TYPE  value  = fifo_read_element(buffer_handle);
 ```
 
-`rb_add_element` returns `RB_OK` or `RB_FULL`.
-`rb_read_element` returns `value` or `NULL`.
+`fifo_add_element` returns `FIFO_OK` or `FIFO_FULL`.
+`fifo_read_element` returns `value` or `NULL`.
 
 The functions can be guarded by using
 ```
-uint8_t  is_empty = rb_is_empty(buffer_handle);
-uint8_t  is_full  = rb_is_full (buffer_handle);
+uint8_t  is_empty = fifo_is_empty(buffer_handle);
+uint8_t  is_full  = fifo_is_full (buffer_handle);
 ```
 
 ## Returning Buffers that are no longer used
@@ -99,11 +99,11 @@ it may be a good idea to have the data collection task claim a buffer, fill it
 and then pass it on to one of many other tasks. These tasks can then return the
 buffer once its content has been processed.
 ```
-uint8_t  result = rb_return_buffer(buffer_handle);
+uint8_t  result = fifo_return_buffer(buffer_handle);
 ```
 The function automtically checks, if the buffer_handle is a valid buffer
 address and if the buffer is already on the stack or not. The return values are
-`RB_OK`, `RB_DUPLICATE` (buffer already on stack), `RB_NULL` (invalid handle).
+`FIFO_OK`, `FIFO_DUPLICATE` (buffer already on stack), `FIFO_NULL` (invalid handle).
 
 # Changelog
 
