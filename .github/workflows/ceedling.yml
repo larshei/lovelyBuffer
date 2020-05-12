@@ -28,10 +28,11 @@ jobs:
       with:
         ruby-version: 2.7
     - name: Install Ceedling
+      run: gem install ceedling
+    - name: Create Test Folder
       run: |
-        gem install ceedling
         ceedling new unit_test
-        pwd
-        ls -l
         cd unit_test
-        ceedling test:all
+        cat project.yml
+    - name: Run unit tests
+      run: ceedling test:all
