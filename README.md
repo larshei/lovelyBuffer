@@ -54,15 +54,15 @@ dont contain the data themselves, so the user needs to provide memory for
 storage. Buffers will be used in the application based on their handle/pointer.
 
 ```
-uint8_t     buffer_array[100];
-rb_buffer_t buffer_handle;
+DATA_TYPE    buffer_array[100];
+rb_buffer_t  buffer_handle;
 ```
 
 To give the data storage information to the buffer system, create a
 `rb_data_info_t` structure:
 ```
-rb_data_info_t buffer_config;
-buffer_config.array = (DATA_TYPE*) buffer_array;
+rb_data_info_t              buffer_config;
+buffer_config.array         = (DATA_TYPE*) buffer_array;
 buffer_config.element_count = BUFFER_SIZE;
 buffer_config.element_size  = sizeof(DATA_TYPE);
 ```
@@ -78,8 +78,8 @@ handle.
 
 Using a buffer is pretty straight forward adding and reading values, using
 ```
-result = rb_add_element(buffer_handle, value);
-value  = rb_read_element(buffer_handle);
+uint8_t    result = rb_add_element(buffer_handle, value);
+DATA_TYPE  value  = rb_read_element(buffer_handle);
 ```
 
 `rb_add_element` returns `RB_OK` or `RB_FULL`.
@@ -87,8 +87,8 @@ value  = rb_read_element(buffer_handle);
 
 The functions can be guarded by using
 ```
-uint8_t is_empty = rb_is_empty(buffer_handle);
-uint8_t is_full  = rb_is_full (buffer_handle);
+uint8_t  is_empty = rb_is_empty(buffer_handle);
+uint8_t  is_full  = rb_is_full (buffer_handle);
 ```
 
 ## Returning Buffers that are no longer used
@@ -98,7 +98,7 @@ it may be a good idea to have the data collection task claim a buffer, fill it
 and then pass it on to one of many other tasks. These tasks can then return the
 buffer once its content has been processed.
 ```
-result = rb_return_buffer(buffer_handle);
+uint8_t  result = rb_return_buffer(buffer_handle);
 ```
 The function automtically checks, if the buffer_handle is a valid buffer
 address and if the buffer is already on the stack or not. The return values are
