@@ -12,6 +12,15 @@ This is an implementation of a ring buffer in C, with the following attributes:
   
 Unit tests in Ceedling are planned.
 
+The Buffer System
+===
+
+The buffer system is designed to provide multiple FIFO-buffers and allow
+asynchronous data collection / data processing.
+
+After initialization, a buffer handle for each buffer is put on a stack and can
+be claimed by the users program. The buffer can later be returned to the
+system and claimed again.
 
 Example Usage
 ===
