@@ -31,8 +31,10 @@ jobs:
       run: gem install ceedling
     - name: Create Test Folder
       run: |
-        ceedling new unit_test
         cd unit_test
         cat project.yml
     - name: Run unit tests
-      run: ceedling test:all
+      run: |
+        pwd
+        cd unit_test
+        ceedling test:all
