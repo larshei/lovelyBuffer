@@ -1,6 +1,6 @@
 #include "unity.h"
-#include "fifo_buffer.h"
-#include "fifo_buffer_config.h"
+#include "../../fifo_buffer.h"
+#include "../../fifo_buffer_config.h"
 
 #define BUFFER_SIZE     20
 DATA_TYPE buffer_array[BUFFER_SIZE];
