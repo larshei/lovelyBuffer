@@ -30,7 +30,8 @@ jobs:
     - name: Install Ceedling
       run: |
         gem install ceedling
-        pwd
         ceedling new unit_test
+        pwd
+        ls -l
         cd unit_test
         ceedling test:all
