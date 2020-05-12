@@ -1,9 +1,9 @@
-FIFO / Ring buffer in C
+FIFO in C
 ===
 
-This is an implementation of a ring buffer in C, with the following attributes:
+This is an implementation of a FIFO in C, with the following attributes:
 
-- Ring buffer / FIFO with user defined data type.
+- FIFO with user defined data type.
 - Manages read/write and mutliple buffer instances.
 - Does not overwrite data that has not been read yet.
 - Buffer instances / slots can be claimed and returned for repeated use.
@@ -34,7 +34,7 @@ output, and communication is based on exchanging bytes (= 8 bit length).
 Configure the buffer system in `fifo_buffer_config.h` like so:
 ```
 #define DATA_TYPE           uint8_t
-#define FIFO_BUFFER_COUNT     2
+#define FIFO_BUFFER_COUNT   2
 ```
 
 ## System Init
@@ -55,7 +55,7 @@ dont contain the data themselves, so the user needs to provide memory for
 storage. Buffers will be used in the application based on their handle/pointer.
 
 ```
-DATA_TYPE    buffer_array[100];
+DATA_TYPE      buffer_array[100];
 fifo_buffer_t  buffer_handle;
 ```
 
