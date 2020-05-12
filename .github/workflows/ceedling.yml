@@ -31,6 +31,5 @@ jobs:
       run: |
         gem install ceedling
         ceedling new unit_test
-        Y
         cd unit_test
         ceedling test:all
