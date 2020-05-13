@@ -146,6 +146,10 @@ uint8_t buf_ring_buffer_mode(buf_buffer_t buffer) {
     return BUF_OK;
 }
 
+uint8_t buf_was_filled_once(buf_buffer_t buffer) {
+    return buffer->was_filled_once;
+}
+
 uint8_t buf_add_element (buf_buffer_t buffer, DATA_TYPE element) {
     if (buffer->is_full) {
         if (!(buffer->allow_overwrite)) {
