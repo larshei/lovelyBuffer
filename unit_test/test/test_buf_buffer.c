@@ -134,7 +134,7 @@ void test_buffer_add_remove_element(void) {
     DATA_TYPE value = 1000;
     buf_add_element(buffer_slot, value);
     value = 0;
-    value = buf_read_element(buffer_slot);
+    value = *(buf_read_element(buffer_slot));
     TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
 }
 
@@ -174,7 +174,7 @@ void test_buffer_fill_empty(void) {
 
     for (int i = 0; i < BUFFER_SIZE ; i++) {
         TEST_ASSERT_EQUAL(0, buf_is_empty(buffer_slot));
-        read_data = buf_read_element(buffer_slot);
+        read_data = *(buf_read_element(buffer_slot));
         TEST_ASSERT_EQUAL(i, read_data);
         TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
     }
