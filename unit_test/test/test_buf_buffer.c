@@ -1,19 +1,24 @@
 #include "unity.h"
 #include "../../buf_buffer.h"
 #include "../../buf_buffer_config.h"
+#include <string.h>
+
+/* -----------------------------------------------------------------------------
+ * CONTENT
+ * 
+ * Helpers
+ * Setup / Teardown
+ * Buffer Claim / Init / Return
+ * Buffer mode changes
+ * Buffer usage - FIFO mode
+ * Buffer usage - RING mode
+ *----------------------------------------------------------------------------*/
 
 #define BUFFER_SIZE     20
 DATA_TYPE buffer_array[BUFFER_SIZE];
 buf_data_info_t  buffer_info;
 buf_buffer_t*    buffer;
 
-void setUp(void) {
-    TEST_ASSERT_EQUAL(BUF_OK, buf_init_system() );
-}
-
-void tearDown(void) {
-
-}
 
 // -------- HELPERS ----------
 buf_data_info_t* create_buffer_config() {
@@ -22,6 +27,16 @@ buf_data_info_t* create_buffer_config() {
     buffer_info.element_size  = sizeof(DATA_TYPE);
     return (buf_data_info_t*)&buffer_info;
 } 
+
+
+// -------- UNITY SETUP AND TEARDOWN CALLBACKS ----------
+void setUp(void) {
+    TEST_ASSERT_EQUAL(BUF_OK, buf_init_system() );
+}
+
+void tearDown(void) {
+
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * TEST BUFFER CLAIM / INIT / RETURN
@@ -137,11 +152,10 @@ void test_buffer_mode(void) {
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * TEST BUFFER USAGE - FIFO
+ * TEST BUFFER USAGE - FIFO MODE
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void test_buffer_add_element(void) {
-    buf_buffer_t buffer_slot = buf_claim_buffer();
-    buf_init_buffer(buffer_slot, create_buffer_config());
+void test_fifo_buffer_add_element(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
 
     DATA_TYPE value = 1000;
     buf_add_element(buffer_slot, value);
@@ -149,20 +163,19 @@ void test_buffer_add_element(void) {
     TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
 }
 
-void test_buffer_add_remove_element(void) {
-    buf_buffer_t buffer_slot = buf_claim_buffer();
-    buf_init_buffer(buffer_slot, create_buffer_config());
+void test_fifo_buffer_add_read_element(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
 
-    DATA_TYPE value = 1000;
+    DATA_TYPE value = 100;
     buf_add_element(buffer_slot, value);
     value = 0;
     value = *(buf_read_element(buffer_slot));
     TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
+    TEST_ASSERT_EQUAL(100, value);
 }
 
-void test_buffer_fill(void) {
-    buf_buffer_t buffer_slot = buf_claim_buffer();
-    buf_init_buffer(buffer_slot, create_buffer_config());
+void test_fifo_buffer_fill(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
 
     uint8_t result;
 
@@ -177,9 +190,8 @@ void test_buffer_fill(void) {
     TEST_ASSERT_EQUAL(BUF_FULL, result);
 }
 
-void test_buffer_fill_empty(void) {
-    buf_buffer_t buffer_slot = buf_claim_buffer();
-    buf_init_buffer(buffer_slot, create_buffer_config());
+void test_fifo_buffer_fill_empty(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
 
     uint8_t result;
     DATA_TYPE read_data;
@@ -204,6 +216,80 @@ void test_buffer_fill_empty(void) {
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * TEST BUFFER USAGE - RING BUFFER
+ * TEST BUFFER USAGE - RING MODE
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 // TODO add unit test for ring buffer mode
+
+void test_ring_buffer_add_element(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+    buf_ring_buffer_mode(buffer_slot);
+
+    DATA_TYPE value = 1000;
+    buf_add_element(buffer_slot, value);
+    TEST_ASSERT_EQUAL(0, buf_is_empty(buffer_slot));
+    TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
+    TEST_ASSERT_EQUAL(0, buf_was_filled_once(buffer_slot));
+}
+
+void test_ring_buffer_add_remove_element(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+    buf_ring_buffer_mode(buffer_slot);
+
+    DATA_TYPE value = 100;
+    buf_add_element(buffer_slot, value);
+    value = 0;
+    value = *(buf_read_element(buffer_slot));
+    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
+    TEST_ASSERT_EQUAL(100, value);
+    TEST_ASSERT_EQUAL(0, buf_was_filled_once(buffer_slot));
+}
+
+void test_ring_buffer_fill(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+    buf_ring_buffer_mode(buffer_slot);
+
+    for (int i = 0; i < BUFFER_SIZE ; i++) {
+        TEST_ASSERT_EQUAL(0, buf_was_filled_once(buffer_slot));
+        TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
+        TEST_ASSERT_EQUAL(BUF_OK, buf_add_element(buffer_slot, i));
+        TEST_ASSERT_EQUAL(0, buf_is_empty(buffer_slot));
+    }
+    TEST_ASSERT_EQUAL(1, buf_is_full(buffer_slot));
+    TEST_ASSERT_EQUAL(1, buf_was_filled_once(buffer_slot));
+    TEST_ASSERT_EQUAL(BUF_OK, buf_add_element(buffer_slot, 10));
+}
+
+void test_ring_buffer_fill_empty(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+    buf_ring_buffer_mode(buffer_slot);
+
+    for (int i = 0; i < BUFFER_SIZE ; i++) {
+        TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
+        TEST_ASSERT_EQUAL(BUF_OK, buf_add_element(buffer_slot, i));
+        TEST_ASSERT_EQUAL(0, buf_is_empty(buffer_slot));
+    }
+    TEST_ASSERT_EQUAL(1, buf_is_full(buffer_slot));
+
+    for (int i = 0; i < BUFFER_SIZE ; i++) {
+        TEST_ASSERT_EQUAL(0, buf_is_empty(buffer_slot));
+        TEST_ASSERT_EQUAL(i, *(buf_read_element(buffer_slot)));
+        TEST_ASSERT_EQUAL(0, buf_is_full(buffer_slot));
+        TEST_ASSERT_EQUAL(1, buf_was_filled_once(buffer_slot));
+    }
+    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
+}
+
+void test_ring_fill_buffer_twice() {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+    buf_ring_buffer_mode(buffer_slot);
+    DATA_TYPE test_array[BUFFER_SIZE];
+
+    memset(test_array,   0, BUFFER_SIZE);
+    memset(buffer_array, 0, BUFFER_SIZE);
+
+    for (int i = 0; i < BUFFER_SIZE * 2 ; i++) {
+        TEST_ASSERT_EQUAL(BUF_OK, buf_add_element(buffer_slot, i));
+        test_array[i % BUFFER_SIZE] = i;
+        TEST_ASSERT_EQUAL_UINT8_ARRAY(test_array, buffer_array, BUFFER_SIZE);
+    }
+}
