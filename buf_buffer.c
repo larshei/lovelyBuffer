@@ -124,6 +124,9 @@ unsigned int buf_get_buffer_size(buf_buffer_t buffer) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * MANAGE BUFFER CONTENT
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+uint8_t buf_reset_read(buf_buffer_t buffer);
+
+
 uint8_t buf_get_buffer_mode(buf_buffer_t buffer) {
     uint8_t is_ring_buffer = buffer->allow_overwrite;
     if (is_ring_buffer) {
@@ -133,7 +136,7 @@ uint8_t buf_get_buffer_mode(buf_buffer_t buffer) {
     }
 }
 
-uint8_t buf_buf_buffer_mode(buf_buffer_t buffer) {
+uint8_t buf_fifo_buffer_mode(buf_buffer_t buffer) {
     buffer->allow_overwrite = 0;
     return BUF_OK;
 }
@@ -144,7 +147,11 @@ uint8_t buf_ring_buffer_mode(buf_buffer_t buffer) {
 }
 
 uint8_t buf_add_element (buf_buffer_t buffer, DATA_TYPE element) {
-    if (buffer->is_full) return BUF_FULL;
+    if (buffer->is_full) {
+        if (!(buffer->allow_overwrite)) {
+            return BUF_FULL;
+        }
+    }
 
     *(buffer->write) = element;
     buffer->write++;
@@ -173,6 +180,8 @@ DATA_TYPE* buf_read_element (buf_buffer_t buffer) {
     return element;
 }
 
+
+
 uint8_t buf_is_empty(buf_buffer_t buffer) {
     return buffer->is_empty;
 }
@@ -186,7 +195,7 @@ void print_buffer(buf_buffer_t buffer) {
     unsigned int buffer_size = buf_get_buffer_size(buffer);
     for (int i = 0; i < buffer_size ; i++) {
         printf("%d ", buffer->first_element[i]);
-        if (!(i+1 % 0))
+        if (!(i+1 % 10))
             printf("\n");
     }
 }
