@@ -160,9 +160,27 @@ uint8_t buf_add_element (buf_buffer_t buffer, DATA_TYPE element) {
     if (ouf_of_bounds(buffer, buffer->write))
         buffer->write = buffer->first_element;
 
-    if (buffer->write == buffer->read) buffer->is_full = 1;
-
+    if (buffer->write == buffer->read) {
+        buffer->is_full = 1;
+        buffer->was_filled_once = 1;
+        if (buffer->allow_overwrite) {
+            buf_reset_read(buffer);
+        }
+    } 
     return BUF_OK;
+}
+
+uint8_t buf_reset_read(buf_buffer_t buffer) {
+    if (buffer->allow_overwrite) {
+        if (buffer->was_filled_once) {
+            buffer->read = buffer->write;
+        } else {
+            buffer->read = buffer->first_element;
+        }
+        return BUF_OK;
+    } else {
+        return BUF_FIFOBUF;
+    }
 }
 
 DATA_TYPE* buf_read_element (buf_buffer_t buffer) {
