@@ -209,6 +209,7 @@ uint8_t buf_is_full(buf_buffer_t buffer) {
 }
 
 #ifdef TEST
+#include <stdio.h> 
 void print_buffer(buf_buffer_t buffer) {
     unsigned int buffer_size = buf_get_buffer_size(buffer);
     for (int i = 0; i < buffer_size ; i++) {
