@@ -2,7 +2,7 @@
 #define __RING_BUFFER_H
 
 #include <stdint.h>
-#include "buf_config.h"
+#include "buf_buffer_config.h"
 
 // expose a pointer to buf_buffer_t, but hide its contents.
 typedef struct buf_internal_buffer_t* buf_buffer_t;
