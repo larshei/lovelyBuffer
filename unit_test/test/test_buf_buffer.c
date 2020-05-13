@@ -24,7 +24,7 @@ buf_data_info_t* create_buffer_config() {
 } 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * TEST BUFFER SLOTS
+ * TEST BUFFER CLAIM / INIT / RETURN
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void test_claim_all_buffers(void) {
     buf_buffer_t buffer_slot[BUF_BUFFER_COUNT];
@@ -50,7 +50,29 @@ void test_claim_too_many_buffers(void) {
     TEST_ASSERT_EQUAL(BUF_BUFFER_COUNT, buf_claim_count());
 
 }
+// -----------------------------------------
+void test_init_buffer(void) {
+    buf_buffer_t buffer_slot = buf_claim_buffer();
+    uint8_t result = buf_init_buffer(buffer_slot, create_buffer_config());
 
+    TEST_ASSERT_EQUAL(BUF_OK, result);
+    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
+    TEST_ASSERT_EQUAL(0, buf_is_full (buffer_slot));
+}
+
+void test_claim_init_buffer(void) {
+    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
+
+    TEST_ASSERT_NOT_EQUAL(NULL, buffer_slot);
+    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
+    TEST_ASSERT_EQUAL(0, buf_is_full (buffer_slot));
+}
+
+void test_init_NULL_buffer(void) {
+    uint8_t result = buf_init_buffer(NULL, create_buffer_config());
+    TEST_ASSERT_EQUAL(BUF_NULL, result);
+}
+// -----------------------------------------
 void test_return_valid_buffer (void) {
     buf_buffer_t buffer_slot;
     buffer_slot = buf_claim_buffer();
@@ -115,31 +137,8 @@ void test_buffer_mode(void) {
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * TEST BUFFER CONTENT - FIFO
+ * TEST BUFFER USAGE - FIFO
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void test_init_buffer(void) {
-    buf_buffer_t buffer_slot = buf_claim_buffer();
-    uint8_t result = buf_init_buffer(buffer_slot, create_buffer_config());
-
-    TEST_ASSERT_EQUAL(BUF_OK, result);
-    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
-    TEST_ASSERT_EQUAL(0, buf_is_full (buffer_slot));
-}
-
-
-void test_claim_init_buffer(void) {
-    buf_buffer_t buffer_slot = buf_claim_and_init_buffer(create_buffer_config());
-
-    TEST_ASSERT_NOT_EQUAL(NULL, buffer_slot);
-    TEST_ASSERT_EQUAL(1, buf_is_empty(buffer_slot));
-    TEST_ASSERT_EQUAL(0, buf_is_full (buffer_slot));
-}
-
-void test_init_NULL_buffer(void) {
-    uint8_t result = buf_init_buffer(NULL, create_buffer_config());
-    TEST_ASSERT_EQUAL(BUF_NULL, result);
-}
-
 void test_buffer_add_element(void) {
     buf_buffer_t buffer_slot = buf_claim_buffer();
     buf_init_buffer(buffer_slot, create_buffer_config());
@@ -205,6 +204,6 @@ void test_buffer_fill_empty(void) {
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * TEST BUFFER CONTENT - RING BUFFER
+ * TEST BUFFER USAGE - RING BUFFER
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 // TODO add unit test for ring buffer mode
