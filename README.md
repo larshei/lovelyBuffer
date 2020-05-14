@@ -1,6 +1,8 @@
 FIFO and ring buffer in C
 ===
 
+![Tests](https://github.com/larshei/ttdelay/workflows/Ruby/badge.svg?branch=master)
+
 This is an implementation of a buffer in C, with the following attributes:
 
 - Buffer with user defined data type.
