@@ -1,7 +1,8 @@
 FIFO and ring buffer in C
 ===
 
-![Tests](https://github.com/larshei/ttdelay/workflows/Ruby/badge.svg?branch=master)
+![Unit
+Tests](https://github.com/larshei/buffer_c/workflows/Unit%20Tests/badge.svg)
 
 This is an implementation of a buffer in C, with the following attributes:
 
