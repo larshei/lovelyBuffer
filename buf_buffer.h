@@ -47,7 +47,7 @@ uint8_t buf_fifo_buffer_mode(buf_buffer_t buffer);
 uint8_t buf_ring_buffer_mode(buf_buffer_t buffer);
 
 uint8_t buf_add_element (buf_buffer_t buffer, DATA_TYPE element);
-DATA_TYPE* buf_read_element (buf_buffer_t buffer);
+DATA_TYPE buf_read_element (buf_buffer_t buffer);
 uint8_t buf_is_empty(buf_buffer_t buffer);
 uint8_t buf_is_full(buf_buffer_t buffer);
 uint8_t buf_was_filled_once(buf_buffer_t buffer);
