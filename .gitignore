@@ -2,6 +2,7 @@
 # Ceedling files
 vendor/
 unit_test/build
+buf_buffer_config.h
 
 # Created by https://www.gitignore.io/api/macos,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=macos,visualstudiocode
