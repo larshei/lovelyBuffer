@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "../../buf_buffer.h"
-#include "../../buf_buffer_config.h"
+#include "../../buf_default_config.h"
 #include <string.h>
 
 /* -----------------------------------------------------------------------------
