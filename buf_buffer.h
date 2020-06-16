@@ -4,6 +4,13 @@
 #include <stdint.h>
 #include "buf_buffer_config.h"
 
+#ifndef BUF_BUFFER_COUNT
+#define BUF_BUFFER_COUNT     4
+#endif
+#ifndef DATA_TYPE
+#define DATA_TYPE           uint32_t
+#endif
+
 // expose a pointer to buf_buffer_t, but hide its contents.
 typedef struct buf_internal_buffer_t* buf_buffer_t;
 
