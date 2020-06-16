@@ -31,5 +31,6 @@ jobs:
       run: gem install ceedling
     - name: Run Unit Tests
       run: |
+        touch buf_config.h
         cd unit_test
         ceedling test:all
