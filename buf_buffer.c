@@ -188,7 +188,7 @@ uint8_t buf_reset_read(buf_buffer_t buffer) {
 }
 
 DATA_TYPE buf_read_element (buf_buffer_t buffer) {
-    if (buffer->is_empty) return NULL;
+    if (buffer->is_empty) return (DATA_TYPE)0;
 
     DATA_TYPE element = *buffer->read;
     buffer->read++;
